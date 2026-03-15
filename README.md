@@ -91,33 +91,31 @@ Student performance is visualized using a **hexagon radar chart** with the follo
 src
 │
 ├── components
-│ ├── ClassCard.jsx
-│ ├── StudentCard.jsx
-│ ├── Navbar.jsx
-│ ├── ProtectedRoute.jsx
-│ ├── SkillRadarChart.jsx
-│ ├── StudentFormModal.jsx
-│ ├── GradeFormModal.jsx
-│ └── NoteFormModal.jsx
+│   ├── ClassCard.jsx
+│   ├── StudentCard.jsx
+│   ├── Navbar.jsx
+│   ├── ProtectedRoute.jsx
+│   ├── SkillRadarChart.jsx
+│   ├── StudentFormModal.jsx
+│   ├── GradeFormModal.jsx
+│   └── NoteFormModal.jsx
 │
 ├── pages
-│ ├── LoginPage.jsx
-│ ├── DashboardPage.jsx
-│ ├── ClassPage.jsx
-│ └── StudentDetailPage.jsx
+│   ├── LoginPage.jsx
+│   ├── DashboardPage.jsx
+│   ├── ClassPage.jsx
+│   └── StudentDetailPage.jsx
 │
 ├── context
-│ ├── AuthContext.jsx
-│ └── SchoolContext.jsx
+│   ├── AuthContext.jsx
+│   └── SchoolContext.jsx
 │
 ├── utils
-│ └── storage.js
+│   └── storage.js
 │
 ├── App.jsx
 ├── main.jsx
 └── index.css
-
----
 
 # How Data is Stored
 
@@ -172,73 +170,42 @@ npm install
 npm run dev
 ```
 
-Open in browser
+5. Open in browser
 
+```bash
 http://localhost:5173
-Default Login
+```
+6. Default Login
 Username: teacher
 Password: 123456
-Screenshots
+
+#Screenshots
 
 Example images you may add:
-
-/screenshots/login.png
-/screenshots/dashboard.png
-/screenshots/class-page.png
-/screenshots/student-profile.png
-
-Display images in README:
 
 ![Dashboard](screenshots/dashboard.png)
 
 # Limitations
 
 Because this project uses localStorage:
-
-Data only exists on the current browser
-
-Clearing browser storage removes all data
-
-Passwords are not encrypted
-
-Not suitable for production environments
+1. Data only exists on the current browser
+2. Clearing browser storage removes all data
+3. Passwords are not encrypted
+4. Not suitable for production environments
 
 This design is intended for learning and demonstration purposes.
 
-Future Improvements
-
+# Future Improvements
 Possible enhancements:
-
-Backend API (Node.js + Express)
-
-Database integration (MongoDB / PostgreSQL)
-
-Secure authentication with hashed passwords
-
-Multiple teacher accounts
-
-Student search and filtering
-
-Export/import class data
-
-Dark mode support
-
-Image compression
+1. Backend API (Node.js + Express)
+2. Database integration (MongoDB / PostgreSQL)
+3. Secure authentication with hashed passwords
+4. Multiple teacher accounts
+5. Student search and filtering
+6. Export/import class data
+7. Dark mode support
+8. Image compression
 
 License
-
 This project is for educational purposes.
 
-
----
-
-If you want, I can also make a **much more professional GitHub README** with:
-
-- badges (React, Vite, Tailwind)
-- system architecture diagram
-- UI screenshots section
-- animated demo GIF
-- table of contents
-- clean section navigation
-
-It will look **like a real production repository**.
