@@ -178,8 +178,10 @@ npm run dev
 http://localhost:5173
 ```
 6. Default Login
+```json
 Username: teacher
 Password: 123456
+```
 
 # Screenshots
 ![Login Page](screenshots/1.png)
