@@ -88,6 +88,7 @@ Student performance is visualized using a **hexagon radar chart** with the follo
 ---
 
 # Project Structure
+```bash
 src
 │
 ├── components
@@ -116,6 +117,7 @@ src
 ├── App.jsx
 ├── main.jsx
 └── index.css
+```
 
 # How Data is Stored
 
