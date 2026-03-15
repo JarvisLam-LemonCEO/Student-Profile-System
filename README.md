@@ -124,11 +124,9 @@ src
 All data is stored in **browser localStorage**.
 
 Keys used:
-
-
-student_profile_users
-student_profile_classes
-student_profile_current_user
+1. student_profile_users
+2. student_profile_classes
+3. student_profile_current_user
 
 
 Example student structure:
@@ -152,23 +150,27 @@ Example student structure:
 }
 ```
 
-Installation
+# Installation
 
-Clone the repository
+1. Clone the repository
+```bash
+git clone https://github.com/JarvisLam-LemonCEO/Student-Profile-System.git
+```
 
-git clone https://github.com/YOUR_USERNAME/student-profile-system.git
-
-Enter the project folder
-
+2. Enter the project folder
+```bash
 cd student-profile-system
+```
 
-Install dependencies
-
+3. Install dependencies
+```bash
 npm install
+```
 
-Run development server
-
+4. Run development server
+```bash
 npm run dev
+```
 
 Open in browser
 
@@ -188,7 +190,8 @@ Example images you may add:
 Display images in README:
 
 ![Dashboard](screenshots/dashboard.png)
-Limitations
+
+# Limitations
 
 Because this project uses localStorage:
 
