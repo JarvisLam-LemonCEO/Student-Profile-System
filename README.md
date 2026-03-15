@@ -181,11 +181,11 @@ http://localhost:5173
 Username: teacher
 Password: 123456
 
-#Screenshots
-
-Example images you may add:
-
-![Dashboard](screenshots/dashboard.png)
+# Screenshots
+![Login Page](screenshots/1.png)
+![Dashboard Page](screenshots/2.png)
+![Class Page](screenshots/3.png)
+![Student Page](screenshots/4.png)
 
 # Limitations
 
