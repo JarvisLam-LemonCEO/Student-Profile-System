@@ -45,6 +45,7 @@ export function SchoolProvider({ children }) {
       name: studentPayload.name,
       studentId: studentPayload.studentId,
       image: studentPayload.image || "",
+      gender: studentPayload.gender || "",
       skills: {
         communication: Number(studentPayload.skills?.communication || 0),
         teamwork: Number(studentPayload.skills?.teamwork || 0),
@@ -56,12 +57,12 @@ export function SchoolProvider({ children }) {
       grades: [],
       notes: [],
     };
-
+    
     setClasses((prev) =>
       prev.map((item) =>
         item.id === classId
-          ? { ...item, students: [...item.students, newStudent] }
-          : item
+        ? { ...item, students: [...item.students, newStudent] }
+        : item
       )
     );
   }

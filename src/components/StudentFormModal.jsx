@@ -4,6 +4,7 @@ const initialForm = {
   name: "",
   studentId: "",
   image: "",
+  gender: "",
   skills: {
     communication: 0,
     teamwork: 0,
@@ -23,6 +24,7 @@ export default function StudentFormModal({ isOpen, onClose, onSave, initialData 
         name: initialData.name || "",
         studentId: initialData.studentId || "",
         image: initialData.image || "",
+        gender: initialData.gender || "",
         skills: {
           communication: initialData.skills?.communication ?? 0,
           teamwork: initialData.skills?.teamwork ?? 0,
@@ -102,6 +104,7 @@ export default function StudentFormModal({ isOpen, onClose, onSave, initialData 
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
               className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
             />
+
             <input
               type="text"
               placeholder="Student ID"
@@ -111,6 +114,20 @@ export default function StudentFormModal({ isOpen, onClose, onSave, initialData 
               }
               className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
             />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Gender
+            </label>
+            <select
+              value={form.gender}
+              onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            >
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
           </div>
 
           <div>

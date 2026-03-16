@@ -64,6 +64,50 @@ function SortableStudentCard({
   );
 }
 
+function StudentSection({
+  title,
+  badgeClassName,
+  students,
+  classId,
+  sensors,
+  onDragEnd,
+  onEdit,
+  onDelete,
+}) {
+  return (
+    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
+        <span className={badgeClassName}>{students.length} students</span>
+      </div>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={onDragEnd}
+      >
+    <SortableContext
+    items={students.map((student) => student.id)}
+    strategy={rectSortingStrategy}
+    >
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    {students.map((student, index) => (
+      <SortableStudentCard
+      key={student.id}
+      classId={classId}
+      student={student}
+      sequenceNumber={index + 1}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      />
+    ))}
+    </div>
+    </SortableContext>
+      </DndContext>
+    </section>
+  );
+}
+
 export default function ClassPage() {
   const { classId } = useParams();
   const navigate = useNavigate();
@@ -85,6 +129,26 @@ export default function ClassPage() {
     () => classes.find((item) => item.id === classId),
     [classes, classId]
   );
+
+  const maleStudents = useMemo(
+    () =>
+    selectedClass?.students.filter(
+      (student) => (student.gender || "Male").toLowerCase() === "male"
+    ) || [],
+    [selectedClass]
+  );
+  
+  const femaleStudents = useMemo(
+    () =>
+    selectedClass?.students.filter(
+      (student) => (student.gender || "").toLowerCase() === "female"
+    ) || [],
+    [selectedClass]
+  );
+
+  const hasMaleStudents = maleStudents.length > 0;
+  const hasFemaleStudents = femaleStudents.length > 0;
+  const hasAnyStudents = hasMaleStudents || hasFemaleStudents;
 
   if (!selectedClass) {
     return (
@@ -125,22 +189,34 @@ export default function ClassPage() {
     }
   }
 
-  function handleDragEnd(event) {
-    const { active, over } = event;
+  function rebuildStudents(males, females) {
+    return [...males, ...females];
+  }
 
+  function handleMaleDragEnd(event) {
+    const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = selectedClass.students.findIndex(
-      (student) => student.id === active.id
-    );
-    const newIndex = selectedClass.students.findIndex(
-      (student) => student.id === over.id
-    );
+    const oldIndex = maleStudents.findIndex((student) => student.id === active.id);
+    const newIndex = maleStudents.findIndex((student) => student.id === over.id);
 
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reordered = arrayMove(selectedClass.students, oldIndex, newIndex);
-    reorderStudents(classId, reordered);
+    const reorderedMales = arrayMove(maleStudents, oldIndex, newIndex);
+    reorderStudents(classId, rebuildStudents(reorderedMales, femaleStudents));
+  }
+
+  function handleFemaleDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = femaleStudents.findIndex((student) => student.id === active.id);
+    const newIndex = femaleStudents.findIndex((student) => student.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reorderedFemales = arrayMove(femaleStudents, oldIndex, newIndex);
+    reorderStudents(classId, rebuildStudents(maleStudents, reorderedFemales));
   }
 
   return (
@@ -173,34 +249,44 @@ export default function ClassPage() {
           </button>
         </div>
 
-        {selectedClass.students.length === 0 ? (
+        {!hasAnyStudents && (
           <div className="rounded-2xl bg-white p-10 text-center text-slate-500 shadow-sm">
             No students yet. Click <strong>Add Student</strong> to create one.
           </div>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+        )}
+
+        {hasAnyStudents && (
+          <div
+            className={`grid gap-8 ${
+              hasMaleStudents && hasFemaleStudents ? "lg:grid-cols-2" : "grid-cols-1"
+            }`}
           >
-            <SortableContext
-              items={selectedClass.students.map((student) => student.id)}
-              strategy={rectSortingStrategy}
-            >
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {selectedClass.students.map((student, index) => (
-                  <SortableStudentCard
-                    key={student.id}
-                    classId={classId}
-                    student={student}
-                    sequenceNumber={index + 1}
-                    onEdit={handleEditStudent}
-                    onDelete={handleDeleteStudent}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+            {hasMaleStudents && (
+              <StudentSection
+                title="Male Students"
+                badgeClassName="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700"
+                students={maleStudents}
+                classId={classId}
+                sensors={sensors}
+                onDragEnd={handleMaleDragEnd}
+                onEdit={handleEditStudent}
+                onDelete={handleDeleteStudent}
+              />
+            )}
+
+            {hasFemaleStudents && (
+              <StudentSection
+                title="Female Students"
+                badgeClassName="rounded-full bg-pink-100 px-3 py-1 text-sm font-medium text-pink-700"
+                students={femaleStudents}
+                classId={classId}
+                sensors={sensors}
+                onDragEnd={handleFemaleDragEnd}
+                onEdit={handleEditStudent}
+                onDelete={handleDeleteStudent}
+              />
+            )}
+          </div>
         )}
       </main>
 
