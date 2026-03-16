@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, Pencil, Trash2, UserRound } from "lucide-react";
+import { ArrowLeft, Download, Pencil, Trash2, UserRound } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import Navbar from "../components/Navbar";
 import SkillRadarChart from "../components/SkillRadarChart";
 import StudentFormModal from "../components/StudentFormModal";
@@ -11,6 +13,7 @@ import { useSchool } from "../context/SchoolContext";
 export default function StudentDetailPage() {
   const { classId, studentId } = useParams();
   const navigate = useNavigate();
+
   const {
     classes,
     updateStudent,
@@ -37,6 +40,7 @@ export default function StudentDetailPage() {
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   const [editingGrade, setEditingGrade] = useState(null);
   const [editingNote, setEditingNote] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   if (!selectedClass || !student) {
     return (
@@ -76,18 +80,239 @@ export default function StudentDetailPage() {
     }
   }
 
+  function addWrappedText(doc, text, x, y, maxWidth, lineHeight = 6) {
+    const lines = doc.splitTextToSize(text || "", maxWidth);
+    doc.text(lines, x, y);
+    return y + lines.length * lineHeight;
+  }
+
+  async function handleDownloadPDF() {
+    try {
+      setIsDownloading(true);
+
+      const doc = new jsPDF("p", "mm", "a4");
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      let y = 20;
+
+      // Header
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, pageWidth, 28, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.text("Student Report", margin, 18);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 65, 18);
+
+      y = 38;
+
+      // Student image
+      if (student.image) {
+        try {
+          doc.addImage(student.image, "JPEG", margin, y, 30, 30);
+        } catch {
+          try {
+            doc.addImage(student.image, "PNG", margin, y, 30, 30);
+          } catch {
+            // ignore invalid image format
+          }
+        }
+      } else {
+        doc.setDrawColor(180);
+        doc.rect(margin, y, 30, 30);
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text("No Image", margin + 7, y + 16);
+      }
+
+      // Student info
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text(student.name || "Unknown Student", 52, y + 8);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text(`Student ID: ${student.studentId || "-"}`, 52, y + 16);
+      doc.text(`Class: ${selectedClass.name || "-"}`, 52, y + 23);
+
+      y += 40;
+
+      // Section helper
+      const drawSectionTitle = (title) => {
+        doc.setFillColor(241, 245, 249);
+        doc.rect(margin, y, pageWidth - margin * 2, 9, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(30, 41, 59);
+        doc.text(title, margin + 3, y + 6);
+        y += 14;
+      };
+
+      // Skills
+      drawSectionTitle("Skill Summary");
+
+      const skillRows = [
+        ["Communication", String(student.skills?.communication ?? 0)],
+        ["Teamwork", String(student.skills?.teamwork ?? 0)],
+        ["Problem Solving", String(student.skills?.problemSolving ?? 0)],
+        ["Leadership", String(student.skills?.leadership ?? 0)],
+        ["Creativity", String(student.skills?.creativity ?? 0)],
+        ["Discipline", String(student.skills?.discipline ?? 0)],
+      ];
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Skill", "Score"]],
+        body: skillRows,
+        margin: { left: margin, right: margin },
+        theme: "grid",
+        styles: {
+          font: "helvetica",
+          fontSize: 10,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [37, 99, 235],
+        },
+      });
+
+      y = doc.lastAutoTable.finalY + 10;
+
+      // Grades
+      drawSectionTitle("Grades");
+
+      const gradeRows =
+        student.grades?.length > 0
+          ? student.grades.map((grade) => [
+              grade.subject || "-",
+              grade.date || "-",
+              grade.type || "-",
+              String(grade.grade ?? "-"),
+            ])
+          : [["No grades available", "", "", ""]];
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Subject", "Date", "Type", "Grade"]],
+        body: gradeRows,
+        margin: { left: margin, right: margin },
+        theme: "grid",
+        styles: {
+          font: "helvetica",
+          fontSize: 10,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [22, 163, 74],
+        },
+      });
+
+      y = doc.lastAutoTable.finalY + 10;
+
+      // Notes
+      if (y > pageHeight - 50) {
+        doc.addPage();
+        y = 20;
+      }
+
+      drawSectionTitle("Notes");
+
+      if (student.notes?.length > 0) {
+        student.notes.forEach((note, index) => {
+          if (y > pageHeight - 30) {
+            doc.addPage();
+            y = 20;
+          }
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(0, 0, 0);
+          doc.text(`Note ${index + 1}`, margin, y);
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+          doc.setTextColor(90);
+          doc.text(`Date: ${note.date || "-"}`, margin + 22, y);
+
+          y += 6;
+
+          doc.setDrawColor(220);
+          doc.rect(margin, y, pageWidth - margin * 2, 16);
+
+          y = addWrappedText(
+            doc,
+            note.content || "",
+            margin + 3,
+            y + 6,
+            pageWidth - margin * 2 - 6,
+            5
+          );
+
+          y += 8;
+        });
+      } else {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("No notes available.", margin, y);
+        y += 8;
+      }
+
+      // Footer on every page
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i += 1) {
+        doc.setPage(i);
+        doc.setDrawColor(220);
+        doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10);
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text(
+          `Student Profile Management System`,
+          margin,
+          pageHeight - 4
+        );
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 4);
+      }
+
+      const safeName = (student.name || "student").replace(/\s+/g, "_");
+      doc.save(`${safeName}_report.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to download PDF.");
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-100">
       <Navbar />
 
       <main className="mx-auto max-w-7xl px-6 py-8">
-        <button
-          onClick={() => navigate(`/class/${classId}`)}
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
-        >
-          <ArrowLeft size={16} />
-          Back to Class
-        </button>
+        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <button
+            onClick={() => navigate(`/class/${classId}`)}
+            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
+          >
+            <ArrowLeft size={16} />
+            Back to Class
+          </button>
+
+          <button
+            onClick={handleDownloadPDF}
+            disabled={isDownloading}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            <Download size={16} />
+            {isDownloading ? "Downloading..." : "Download PDF"}
+          </button>
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
