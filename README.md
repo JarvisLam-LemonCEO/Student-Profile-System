@@ -20,6 +20,8 @@ All data is stored locally in the browser using **localStorage**, so no backend 
 - Edit class information
 - Delete classes
 - View students in each class
+- Export all stored data to a JSON backup file
+- Import a JSON backup file on another computer and continue editing
 
 ## Student Management
 
@@ -28,6 +30,9 @@ All data is stored locally in the browser using **localStorage**, so no backend 
 - Delete students
 - Upload and display student profile images
 - Drag-and-drop to reorder students
+- Categorize students by gender
+- Show male and female student sections separately
+- Automatically update student sequence numbers after reordering
 
 ## Student Profile Page
 
@@ -35,10 +40,30 @@ Each student has a dedicated page displaying:
 
 - Student name
 - Student ID
+- Gender
+- Birthday
+- Weight
+- Height
+- Blood type
 - Profile image
 - Skill hexagon chart
+- Teacher assignments
 - Grades
 - Notes
+- Download student report as PDF
+
+## Teacher Assignment Management
+
+Each student can have different teachers for different levels.
+
+- Add teacher assignments
+- Edit teacher assignments
+- Delete teacher assignments
+
+Fields include:
+
+- Level
+- Teacher name
 
 ## Grade Management
 
@@ -72,6 +97,25 @@ Student performance is visualized using a **hexagon radar chart** with the follo
 - Creativity
 - Discipline
 
+## PDF Export
+
+The system allows teachers to download an individual student profile as a PDF file.
+
+The exported PDF includes:
+
+- Student name
+- Student ID
+- Gender
+- Birthday
+- Weight
+- Height
+- Blood type
+- Student profile image
+- Skill summary
+- Teacher assignments
+- Grades list
+- Notes
+
 ---
 
 # Technologies Used
@@ -81,7 +125,11 @@ Student performance is visualized using a **hexagon radar chart** with the follo
 - Tailwind CSS
 - React Router
 - Recharts (Radar Chart)
-- @hello-pangea/dnd (Drag and Drop)
+- @dnd-kit/core
+- @dnd-kit/sortable
+- @dnd-kit/utilities
+- jsPDF
+- jspdf-autotable
 - Lucide React Icons
 - Browser localStorage
 
