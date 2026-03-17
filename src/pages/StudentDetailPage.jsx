@@ -409,7 +409,7 @@ export default function StudentDetailPage() {
 
         <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-slate-800">Teacher Assignments</h2>
+            <h2 className="text-2xl font-semibold text-slate-800">Class Teachers</h2>
             <button
               onClick={() => {
                 setEditingTeacher(null);
@@ -432,10 +432,10 @@ export default function StudentDetailPage() {
                 >
                   <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-6">
                     <p className="font-medium text-slate-800">
-                      Level: <span className="font-normal">{teacher.level}</span>
+                      Class: <span className="font-normal">{teacher.level}</span>
                     </p>
                     <p className="font-medium text-slate-800">
-                      Teacher: <span className="font-normal">{teacher.teacherName}</span>
+                      Class Teacher: <span className="font-normal">{teacher.teacherName}</span>
                     </p>
                   </div>
 
