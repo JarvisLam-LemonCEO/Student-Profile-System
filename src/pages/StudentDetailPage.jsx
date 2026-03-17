@@ -8,6 +8,7 @@ import SkillRadarChart from "../components/SkillRadarChart";
 import StudentFormModal from "../components/StudentFormModal";
 import GradeFormModal from "../components/GradeFormModal";
 import NoteFormModal from "../components/NoteFormModal";
+import TeacherAssignmentFormModal from "../components/TeacherAssignmentFormModal";
 import { useSchool } from "../context/SchoolContext";
 
 export default function StudentDetailPage() {
@@ -23,6 +24,9 @@ export default function StudentDetailPage() {
     addNote,
     updateNote,
     deleteNote,
+    addTeacherAssignment,
+    updateTeacherAssignment,
+    deleteTeacherAssignment,
   } = useSchool();
 
   const selectedClass = useMemo(
@@ -35,11 +39,19 @@ export default function StudentDetailPage() {
     [selectedClass, studentId]
   );
 
+  const grades = student?.grades || [];
+  const notes = student?.notes || [];
+  const teacherAssignments = student?.teacherAssignments || [];
+
   const [studentModalOpen, setStudentModalOpen] = useState(false);
   const [gradeModalOpen, setGradeModalOpen] = useState(false);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [teacherModalOpen, setTeacherModalOpen] = useState(false);
+
   const [editingGrade, setEditingGrade] = useState(null);
   const [editingNote, setEditingNote] = useState(null);
+  const [editingTeacher, setEditingTeacher] = useState(null);
+
   const [isDownloading, setIsDownloading] = useState(false);
 
   if (!selectedClass || !student) {
@@ -70,6 +82,7 @@ export default function StudentDetailPage() {
     } else {
       addGrade(classId, studentId, form);
     }
+    setEditingGrade(null);
   }
 
   function handleSaveNote(form) {
@@ -78,6 +91,16 @@ export default function StudentDetailPage() {
     } else {
       addNote(classId, studentId, form);
     }
+    setEditingNote(null);
+  }
+
+  function handleSaveTeacher(form) {
+    if (editingTeacher) {
+      updateTeacherAssignment(classId, studentId, editingTeacher.id, form);
+    } else {
+      addTeacherAssignment(classId, studentId, form);
+    }
+    setEditingTeacher(null);
   }
 
   function addWrappedText(doc, text, x, y, maxWidth, lineHeight = 6) {
@@ -96,7 +119,6 @@ export default function StudentDetailPage() {
       const margin = 15;
       let y = 20;
 
-      // Header
       doc.setFillColor(37, 99, 235);
       doc.rect(0, 0, pageWidth, 28, "F");
 
@@ -111,7 +133,6 @@ export default function StudentDetailPage() {
 
       y = 38;
 
-      // Student image
       if (student.image) {
         try {
           doc.addImage(student.image, "JPEG", margin, y, 30, 30);
@@ -130,7 +151,6 @@ export default function StudentDetailPage() {
         doc.text("No Image", margin + 7, y + 16);
       }
 
-      // Student info
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
@@ -138,12 +158,16 @@ export default function StudentDetailPage() {
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-      doc.text(`Student ID: ${student.studentId || "-"}`, 52, y + 16);
-      doc.text(`Class: ${selectedClass.name || "-"}`, 52, y + 23);
+      doc.text(`Student ID: ${student.studentId || "-"}`, 52, y + 14);
+      doc.text(`Gender: ${student.gender || "-"}`, 52, y + 20);
+      doc.text(`Birthday: ${student.birthday || "-"}`, 52, y + 26);
+      doc.text(`Weight: ${student.weight || "-"}`, 52, y + 32);
+      doc.text(`Height: ${student.height || "-"}`, 52, y + 38);
+      doc.text(`Blood Type: ${student.bloodType || "-"}`, 52, y + 44);
+      doc.text(`Class: ${selectedClass.name || "-"}`, 52, y + 50);
 
-      y += 40;
+      y += 68;
 
-      // Section helper
       const drawSectionTitle = (title) => {
         doc.setFillColor(241, 245, 249);
         doc.rect(margin, y, pageWidth - margin * 2, 9, "F");
@@ -154,7 +178,6 @@ export default function StudentDetailPage() {
         y += 14;
       };
 
-      // Skills
       drawSectionTitle("Skill Summary");
 
       const skillRows = [
@@ -184,12 +207,38 @@ export default function StudentDetailPage() {
 
       y = doc.lastAutoTable.finalY + 10;
 
-      // Grades
+      if (teacherAssignments.length > 0) {
+        drawSectionTitle("Teacher Assignments");
+
+        const teacherRows = teacherAssignments.map((teacher) => [
+          teacher.level || "-",
+          teacher.teacherName || "-",
+        ]);
+
+        autoTable(doc, {
+          startY: y,
+          head: [["Level", "Teacher Name"]],
+          body: teacherRows,
+          margin: { left: margin, right: margin },
+          theme: "grid",
+          styles: {
+            font: "helvetica",
+            fontSize: 10,
+            cellPadding: 3,
+          },
+          headStyles: {
+            fillColor: [168, 85, 247],
+          },
+        });
+
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
       drawSectionTitle("Grades");
 
       const gradeRows =
-        student.grades?.length > 0
-          ? student.grades.map((grade) => [
+        grades.length > 0
+          ? grades.map((grade) => [
               grade.subject || "-",
               grade.date || "-",
               grade.type || "-",
@@ -215,7 +264,6 @@ export default function StudentDetailPage() {
 
       y = doc.lastAutoTable.finalY + 10;
 
-      // Notes
       if (y > pageHeight - 50) {
         doc.addPage();
         y = 20;
@@ -223,8 +271,8 @@ export default function StudentDetailPage() {
 
       drawSectionTitle("Notes");
 
-      if (student.notes?.length > 0) {
-        student.notes.forEach((note, index) => {
+      if (notes.length > 0) {
+        notes.forEach((note, index) => {
           if (y > pageHeight - 30) {
             doc.addPage();
             y = 20;
@@ -264,7 +312,6 @@ export default function StudentDetailPage() {
         y += 8;
       }
 
-      // Footer on every page
       const totalPages = doc.getNumberOfPages();
       for (let i = 1; i <= totalPages; i += 1) {
         doc.setPage(i);
@@ -272,11 +319,7 @@ export default function StudentDetailPage() {
         doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10);
         doc.setFontSize(9);
         doc.setTextColor(120);
-        doc.text(
-          `Student Profile Management System`,
-          margin,
-          pageHeight - 4
-        );
+        doc.text("Student Profile Management System", margin, pageHeight - 4);
         doc.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 4);
       }
 
@@ -333,6 +376,11 @@ export default function StudentDetailPage() {
                 <div>
                   <h1 className="text-3xl font-bold text-slate-800">{student.name}</h1>
                   <p className="mt-1 text-slate-500">Student ID: {student.studentId}</p>
+                  <p className="mt-1 text-slate-500">Gender: {student.gender || "-"}</p>
+                  <p className="mt-1 text-slate-500">Birthday: {student.birthday || "-"}</p>
+                  <p className="mt-1 text-slate-500">Weight: {student.weight || "-"}</p>
+                  <p className="mt-1 text-slate-500">Height: {student.height || "-"}</p>
+                  <p className="mt-1 text-slate-500">Blood Type: {student.bloodType || "-"}</p>
                   <p className="mt-2 text-sm text-slate-400">Class: {selectedClass.name}</p>
 
                   {student.image && (
@@ -359,6 +407,66 @@ export default function StudentDetailPage() {
           <SkillRadarChart skills={student.skills} />
         </div>
 
+        <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-slate-800">Teacher Assignments</h2>
+            <button
+              onClick={() => {
+                setEditingTeacher(null);
+                setTeacherModalOpen(true);
+              }}
+              className="rounded-lg bg-primary px-4 py-2 text-white"
+            >
+              Add Teacher
+            </button>
+          </div>
+
+          {teacherAssignments.length === 0 ? (
+            <p className="text-slate-500">No teacher assignments yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {teacherAssignments.map((teacher) => (
+                <div
+                  key={teacher.id}
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 p-4 md:flex-row md:items-center md:justify-between"
+                >
+                  <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-6">
+                    <p className="font-medium text-slate-800">
+                      Level: <span className="font-normal">{teacher.level}</span>
+                    </p>
+                    <p className="font-medium text-slate-800">
+                      Teacher: <span className="font-normal">{teacher.teacherName}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingTeacher(teacher);
+                        setTeacherModalOpen(true);
+                      }}
+                      className="rounded-lg border px-3 py-2 text-slate-600"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const confirmed = window.confirm("Delete this teacher assignment?");
+                        if (confirmed) {
+                          deleteTeacherAssignment(classId, studentId, teacher.id);
+                        }
+                      }}
+                      className="rounded-lg border px-3 py-2 text-red-600"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <div className="mb-4 flex items-center justify-between">
@@ -374,7 +482,7 @@ export default function StudentDetailPage() {
               </button>
             </div>
 
-            {student.grades.length === 0 ? (
+            {grades.length === 0 ? (
               <p className="text-slate-500">No grades yet.</p>
             ) : (
               <div className="overflow-x-auto">
@@ -389,7 +497,7 @@ export default function StudentDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {student.grades.map((grade) => (
+                    {grades.map((grade) => (
                       <tr key={grade.id} className="border-b text-sm text-slate-700">
                         <td className="py-3 pr-4">{grade.subject}</td>
                         <td className="py-3 pr-4">{grade.date}</td>
@@ -439,11 +547,11 @@ export default function StudentDetailPage() {
               </button>
             </div>
 
-            {student.notes.length === 0 ? (
+            {notes.length === 0 ? (
               <p className="text-slate-500">No notes yet.</p>
             ) : (
               <div className="space-y-4">
-                {student.notes.map((note) => (
+                {notes.map((note) => (
                   <div key={note.id} className="rounded-xl border border-slate-200 p-4">
                     <div className="mb-3 flex items-start justify-between gap-4">
                       <div>
@@ -489,16 +597,32 @@ export default function StudentDetailPage() {
 
       <GradeFormModal
         isOpen={gradeModalOpen}
-        onClose={() => setGradeModalOpen(false)}
+        onClose={() => {
+          setGradeModalOpen(false);
+          setEditingGrade(null);
+        }}
         onSave={handleSaveGrade}
         initialData={editingGrade}
       />
 
       <NoteFormModal
         isOpen={noteModalOpen}
-        onClose={() => setNoteModalOpen(false)}
+        onClose={() => {
+          setNoteModalOpen(false);
+          setEditingNote(null);
+        }}
         onSave={handleSaveNote}
         initialData={editingNote}
+      />
+
+      <TeacherAssignmentFormModal
+        isOpen={teacherModalOpen}
+        onClose={() => {
+          setTeacherModalOpen(false);
+          setEditingTeacher(null);
+        }}
+        onSave={handleSaveTeacher}
+        initialData={editingTeacher}
       />
     </div>
   );

@@ -26,7 +26,6 @@ export function SchoolProvider({ children }) {
       description: payload.description || "",
       students: [],
     };
-
     setClasses((prev) => [...prev, newClass]);
   }
 
@@ -48,17 +47,22 @@ export function SchoolProvider({ children }) {
       name: studentPayload.name,
       studentId: studentPayload.studentId,
       image: studentPayload.image || "",
-      gender: studentPayload.gender || "Male",
+      gender: studentPayload.gender || "",
+      birthday: studentPayload.birthday || "",
+      weight: studentPayload.weight || "",
+      height: studentPayload.height || "",
+      bloodType: studentPayload.bloodType || "",
       skills: {
-        communication: Number(studentPayload.skills?.communication || 50),
-        teamwork: Number(studentPayload.skills?.teamwork || 50),
-        problemSolving: Number(studentPayload.skills?.problemSolving || 50),
-        leadership: Number(studentPayload.skills?.leadership || 50),
-        creativity: Number(studentPayload.skills?.creativity || 50),
-        discipline: Number(studentPayload.skills?.discipline || 50),
+        communication: Number(studentPayload.skills?.communication || 0),
+        teamwork: Number(studentPayload.skills?.teamwork || 0),
+        problemSolving: Number(studentPayload.skills?.problemSolving || 0),
+        leadership: Number(studentPayload.skills?.leadership || 0),
+        creativity: Number(studentPayload.skills?.creativity || 0),
+        discipline: Number(studentPayload.skills?.discipline || 0),
       },
       grades: [],
       notes: [],
+      teacherAssignments: [],
     };
 
     setClasses((prev) =>
@@ -90,6 +94,10 @@ export function SchoolProvider({ children }) {
                         ...payload.skills,
                       }
                     : student.skills,
+                  teacherAssignments:
+                    payload.teacherAssignments !== undefined
+                      ? payload.teacherAssignments
+                      : student.teacherAssignments || [],
                 }
               : student
           ),
@@ -123,6 +131,82 @@ export function SchoolProvider({ children }) {
     );
   }
 
+  function addTeacherAssignment(classId, studentId, teacherPayload) {
+    const newTeacherAssignment = {
+      id: crypto.randomUUID(),
+      level: teacherPayload.level,
+      teacherName: teacherPayload.teacherName,
+    };
+
+    setClasses((prev) =>
+      prev.map((classItem) =>
+        classItem.id === classId
+          ? {
+              ...classItem,
+              students: classItem.students.map((student) =>
+                student.id === studentId
+                  ? {
+                      ...student,
+                      teacherAssignments: [
+                        ...(student.teacherAssignments || []),
+                        newTeacherAssignment,
+                      ],
+                    }
+                  : student
+              ),
+            }
+          : classItem
+      )
+    );
+  }
+
+  function updateTeacherAssignment(classId, studentId, assignmentId, payload) {
+    setClasses((prev) =>
+      prev.map((classItem) =>
+        classItem.id === classId
+          ? {
+              ...classItem,
+              students: classItem.students.map((student) =>
+                student.id === studentId
+                  ? {
+                      ...student,
+                      teacherAssignments: (student.teacherAssignments || []).map(
+                        (assignment) =>
+                          assignment.id === assignmentId
+                            ? { ...assignment, ...payload }
+                            : assignment
+                      ),
+                    }
+                  : student
+              ),
+            }
+          : classItem
+      )
+    );
+  }
+
+  function deleteTeacherAssignment(classId, studentId, assignmentId) {
+    setClasses((prev) =>
+      prev.map((classItem) =>
+        classItem.id === classId
+          ? {
+              ...classItem,
+              students: classItem.students.map((student) =>
+                student.id === studentId
+                  ? {
+                      ...student,
+                      teacherAssignments: (student.teacherAssignments || []).filter(
+                        (assignment) => assignment.id !== assignmentId
+                      ),
+                    }
+                  : student
+              ),
+            }
+          : classItem
+      )
+    );
+  }
+
   function addGrade(classId, studentId, gradePayload) {
     const newGrade = {
       id: crypto.randomUUID(),
@@ -139,7 +223,10 @@ export function SchoolProvider({ children }) {
               ...classItem,
               students: classItem.students.map((student) =>
                 student.id === studentId
-                  ? { ...student, grades: [...student.grades, newGrade] }
+                  ? {
+                      ...student,
+                      grades: [...(student.grades || []), newGrade],
+                    }
                   : student
               ),
             }
@@ -158,9 +245,13 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      grades: student.grades.map((grade) =>
+                      grades: (student.grades || []).map((grade) =>
                         grade.id === gradeId
-                          ? { ...grade, ...payload, grade: Number(payload.grade) }
+                          ? {
+                              ...grade,
+                              ...payload,
+                              grade: Number(payload.grade),
+                            }
                           : grade
                       ),
                     }
@@ -182,7 +273,9 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      grades: student.grades.filter((grade) => grade.id !== gradeId),
+                      grades: (student.grades || []).filter(
+                        (grade) => grade.id !== gradeId
+                      ),
                     }
                   : student
               ),
@@ -206,7 +299,10 @@ export function SchoolProvider({ children }) {
               ...classItem,
               students: classItem.students.map((student) =>
                 student.id === studentId
-                  ? { ...student, notes: [...student.notes, newNote] }
+                  ? {
+                      ...student,
+                      notes: [...(student.notes || []), newNote],
+                    }
                   : student
               ),
             }
@@ -225,7 +321,7 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      notes: student.notes.map((note) =>
+                      notes: (student.notes || []).map((note) =>
                         note.id === noteId ? { ...note, ...payload } : note
                       ),
                     }
@@ -247,7 +343,9 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      notes: student.notes.filter((note) => note.id !== noteId),
+                      notes: (student.notes || []).filter(
+                        (note) => note.id !== noteId
+                      ),
                     }
                   : student
               ),
@@ -273,6 +371,9 @@ export function SchoolProvider({ children }) {
       addNote,
       updateNote,
       deleteNote,
+      addTeacherAssignment,
+      updateTeacherAssignment,
+      deleteTeacherAssignment,
     }),
     [classes]
   );

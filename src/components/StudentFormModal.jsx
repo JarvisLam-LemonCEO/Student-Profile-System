@@ -5,6 +5,10 @@ const initialForm = {
   studentId: "",
   image: "",
   gender: "",
+  birthday: "",
+  weight: "",
+  height: "",
+  bloodType: "",
   skills: {
     communication: 0,
     teamwork: 0,
@@ -24,7 +28,11 @@ export default function StudentFormModal({ isOpen, onClose, onSave, initialData 
         name: initialData.name || "",
         studentId: initialData.studentId || "",
         image: initialData.image || "",
-        gender: initialData.gender || "",
+        gender: initialData.gender || "Male",
+        birthday: initialData.birthday || "",
+        weight: initialData.weight || "",
+        height: initialData.height || "",
+        bloodType: initialData.bloodType || "",
         skills: {
           communication: initialData.skills?.communication ?? 0,
           teamwork: initialData.skills?.teamwork ?? 0,
@@ -116,18 +124,82 @@ export default function StudentFormModal({ isOpen, onClose, onSave, initialData 
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Gender
-            </label>
-            <select
-              value={form.gender}
-              onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Gender
+              </label>
+              <select
+                value={form.gender}
+                onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              >
+              <option value="">Choose a gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Birthday
+              </label>
+              <input
+                type="date"
+                value={form.birthday}
+                onChange={(e) => setForm((prev) => ({ ...prev, birthday: e.target.value }))}
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Weight
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. 55 kg"
+                value={form.weight}
+                onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value }))}
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Height
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. 170 cm"
+                value={form.height}
+                onChange={(e) => setForm((prev) => ({ ...prev, height: e.target.value }))}
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Blood Type
+              </label>
+              <select
+                value={form.bloodType}
+                onChange={(e) => setForm((prev) => ({ ...prev, bloodType: e.target.value }))}
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              >
+                <option value="">Select</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
           </div>
 
           <div>
