@@ -233,9 +233,9 @@ Password: 123456
 
 # Screenshots
 ![Login Page](screenshots/1.png)
-![Dashboard Page](screenshots/2.png)
-![Class Page](screenshots/3.png)
-![Student Detail Page](screenshots/4.png)
+![Dashboard Page](screenshots/5.png)
+![Class Page](screenshots/6.png)
+![Student Detail Page](screenshots/7.png)
 
 # Limitations
 
