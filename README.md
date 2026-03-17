@@ -5,6 +5,11 @@ A **React + Vite web application** that allows teachers to manage classes and st
 All data is stored locally in the browser using **localStorage**, so no backend server is required.
 
 ---
+# Demo
+## Real World Live Demo
+
+[![Student Management System Demo](https://img.youtube.com/vi/OLBE4jLOxog/0.jpg)](https://youtu.be/OLBE4jLOxog)
+---
 
 # Features
 
