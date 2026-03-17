@@ -5,17 +5,19 @@ const SchoolContext = createContext(null);
 
 export function SchoolProvider({ children }) {
   const [classes, setClasses] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     seedLocalStorage();
-    setClasses(getClasses());
+    const storedClasses = getClasses();
+    setClasses(storedClasses);
+    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (classes.length) {
-      saveClasses(classes);
-    }
-  }, [classes]);
+    if (!isLoaded) return;
+    saveClasses(classes);
+  }, [classes, isLoaded]);
 
   function addClass(payload) {
     const newClass = {
@@ -24,6 +26,7 @@ export function SchoolProvider({ children }) {
       description: payload.description || "",
       students: [],
     };
+
     setClasses((prev) => [...prev, newClass]);
   }
 
@@ -45,24 +48,24 @@ export function SchoolProvider({ children }) {
       name: studentPayload.name,
       studentId: studentPayload.studentId,
       image: studentPayload.image || "",
-      gender: studentPayload.gender || "",
+      gender: studentPayload.gender || "Male",
       skills: {
-        communication: Number(studentPayload.skills?.communication || 0),
-        teamwork: Number(studentPayload.skills?.teamwork || 0),
-        problemSolving: Number(studentPayload.skills?.problemSolving || 0),
-        leadership: Number(studentPayload.skills?.leadership || 0),
-        creativity: Number(studentPayload.skills?.creativity || 0),
-        discipline: Number(studentPayload.skills?.discipline || 0),
+        communication: Number(studentPayload.skills?.communication || 50),
+        teamwork: Number(studentPayload.skills?.teamwork || 50),
+        problemSolving: Number(studentPayload.skills?.problemSolving || 50),
+        leadership: Number(studentPayload.skills?.leadership || 50),
+        creativity: Number(studentPayload.skills?.creativity || 50),
+        discipline: Number(studentPayload.skills?.discipline || 50),
       },
       grades: [],
       notes: [],
     };
-    
+
     setClasses((prev) =>
       prev.map((item) =>
         item.id === classId
-        ? { ...item, students: [...item.students, newStudent] }
-        : item
+          ? { ...item, students: [...item.students, newStudent] }
+          : item
       )
     );
   }
