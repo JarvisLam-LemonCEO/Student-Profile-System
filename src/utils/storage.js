@@ -13,12 +13,24 @@ const defaultUsers = [
 const defaultClasses = [];
 
 export function seedLocalStorage() {
-  if (!localStorage.getItem(USERS_KEY)) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
+  if (!localStorage.getItem("student_profile_users")) {
+    localStorage.setItem(
+      "student_profile_users",
+      JSON.stringify([
+        {
+          id: crypto.randomUUID(),
+          username: "teacher",
+          password: "123456",
+        },
+      ])
+    );
   }
-
-  if (!localStorage.getItem(CLASSES_KEY)) {
-    localStorage.setItem(CLASSES_KEY, JSON.stringify(defaultClasses));
+  
+  if (!localStorage.getItem("student_profile_classes")) {
+    localStorage.setItem(
+      "student_profile_classes",
+      JSON.stringify([])
+    );
   }
 }
 
