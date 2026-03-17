@@ -74,24 +74,30 @@ function StudentSection({
   onEdit,
   onDelete,
 }) {
+  const totalStudents = students.length;
+  const leftColumnCount = Math.ceil(totalStudents / 2);
+  const leftColumnStudents = students.slice(0, leftColumnCount);
+  const rightColumnStudents = students.slice(leftColumnCount);
+  
   return (
     <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
-        <span className={badgeClassName}>{students.length} students</span>
-      </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={onDragEnd}
-      >
+    <div className="mb-5 flex items-center justify-between">
+    <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
+    <span className={badgeClassName}>{students.length} students</span>
+    </div>
+    
+    <DndContext
+    sensors={sensors}
+    collisionDetection={closestCenter}
+    onDragEnd={onDragEnd}
+    >
     <SortableContext
     items={students.map((student) => student.id)}
     strategy={rectSortingStrategy}
     >
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-    {students.map((student, index) => (
+    <div className="flex flex-col gap-5">
+    {leftColumnStudents.map((student, index) => (
       <SortableStudentCard
       key={student.id}
       classId={classId}
@@ -102,8 +108,22 @@ function StudentSection({
       />
     ))}
     </div>
+    
+    <div className="flex flex-col gap-5">
+    {rightColumnStudents.map((student, index) => (
+      <SortableStudentCard
+      key={student.id}
+      classId={classId}
+      student={student}
+      sequenceNumber={leftColumnCount + index + 1}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      />
+    ))}
+    </div>
+    </div>
     </SortableContext>
-      </DndContext>
+    </DndContext>
     </section>
   );
 }
