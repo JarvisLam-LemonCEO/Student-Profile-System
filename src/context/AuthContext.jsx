@@ -4,47 +4,82 @@ import {
   getUsers,
   logoutCurrentUser,
   saveCurrentUser,
-  seedLocalStorage,
-} from "../utils/storage";
+  seedDatabase,
+} from "../db/databaseService";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    seedLocalStorage();
-    setCurrentUser(getCurrentUser());
-  }, []);
+    let isMounted = true;
 
-  function login(username, password) {
-    const users = getUsers();
-    const found = users.find(
-      (user) => user.username === username && user.password === password
-    );
+    async function init() {
+      try {
+        await seedDatabase();
+        const savedUser = await getCurrentUser();
 
-    if (!found) {
-      return { success: false, message: "Invalid username or password" };
+        if (isMounted) {
+          setCurrentUser(savedUser);
+        }
+      } catch (error) {
+        console.error("Auth initialization failed:", error);
+      } finally {
+        if (isMounted) {
+          setIsReady(true);
+        }
+      }
     }
 
-    saveCurrentUser(found);
-    setCurrentUser(found);
-    return { success: true };
+    init();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  async function login(username, password) {
+    try {
+      const users = await getUsers();
+
+      const found = users.find(
+        (user) => user.username === username && user.password === password
+      );
+
+      if (!found) {
+        return { success: false, message: "Invalid username or password" };
+      }
+
+      await saveCurrentUser(found);
+      setCurrentUser(found);
+
+      return { success: true };
+    } catch (error) {
+      console.error("Login failed:", error);
+      return { success: false, message: "Login failed" };
+    }
   }
 
-  function logout() {
-    logoutCurrentUser();
-    setCurrentUser(null);
+  async function logout() {
+    try {
+      await logoutCurrentUser();
+      setCurrentUser(null);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   }
 
   const value = useMemo(
     () => ({
       currentUser,
       isAuthenticated: !!currentUser,
+      isReady,
       login,
       logout,
     }),
-    [currentUser]
+    [currentUser, isReady]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

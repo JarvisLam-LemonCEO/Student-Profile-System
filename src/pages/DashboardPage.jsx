@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import ClassCard from "../components/ClassCard";
 import ClassFormModal from "../components/ClassFormModal";
 import { useSchool } from "../context/SchoolContext";
+import { db } from "../db/db";
 
 export default function DashboardPage() {
   const { classes, addClass, updateClass, deleteClass } = useSchool();
@@ -32,33 +33,83 @@ export default function DashboardPage() {
     if (confirmed) deleteClass(classId);
   }
 
-  function exportData() {
-    const data = {
-      classes: JSON.parse(localStorage.getItem("student_profile_classes")) || [],
-      users: JSON.parse(localStorage.getItem("student_profile_users")) || [],
-    };
+  async function exportData() {
+    try {
+      const users = await db.users.toArray();
+      const classes = await db.classes.toArray();
+      const currentUserMeta = await db.meta.get("currentUser");
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
+      const data = {
+        users,
+        classes,
+        currentUser: currentUserMeta?.value || null,
+      };
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
 
-    a.href = url;
-    a.download = "student_profile_backup.json";
-    a.click();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
 
-    URL.revokeObjectURL(url);
+      const now = new Date();
+      const fileName = `student_profile_backup_${now
+        .toISOString()
+        .slice(0, 10)}.json`;
+
+      a.href = url;
+      a.download = fileName;
+      a.click();
+
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Failed to export data.");
+    }
   }
 
-  function importData(event) {
+  function normalizeStudent(student) {
+    return {
+      ...student,
+      gender: student.gender || "",
+      birthday: student.birthday || "",
+      weight: student.weight || "",
+      height: student.height || "",
+      bloodType: student.bloodType || "",
+      image: student.image || "",
+      teacherAssignments: Array.isArray(student.teacherAssignments)
+        ? student.teacherAssignments
+        : [],
+      skills: student.skills || {
+        communication: 0,
+        teamwork: 0,
+        problemSolving: 0,
+        leadership: 0,
+        creativity: 0,
+        discipline: 0,
+      },
+      grades: Array.isArray(student.grades) ? student.grades : [],
+      notes: Array.isArray(student.notes) ? student.notes : [],
+    };
+  }
+
+  function normalizeClass(cls) {
+    return {
+      ...cls,
+      students: Array.isArray(cls.students)
+        ? cls.students.map(normalizeStudent)
+        : [],
+    };
+  }
+
+  async function importData(event) {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const confirmed = window.confirm(
-      "Importing will overwrite current data. Continue?"
+      "Importing will overwrite current database data. Continue?"
     );
+
     if (!confirmed) {
       event.target.value = "";
       return;
@@ -66,27 +117,46 @@ export default function DashboardPage() {
 
     const reader = new FileReader();
 
-    reader.onload = function (e) {
+    reader.onload = async function (e) {
       try {
-        const data = JSON.parse(e.target.result);
+        const importedData = JSON.parse(e.target.result);
 
-        if (data.classes) {
-          localStorage.setItem(
-            "student_profile_classes",
-            JSON.stringify(data.classes)
-          );
-        }
+        const users = Array.isArray(importedData.users)
+          ? importedData.users
+          : [];
 
-        if (data.users) {
-          localStorage.setItem(
-            "student_profile_users",
-            JSON.stringify(data.users)
-          );
-        }
+        const classes = Array.isArray(importedData.classes)
+          ? importedData.classes.map(normalizeClass)
+          : [];
+
+        const fallbackCurrentUser =
+          importedData.currentUser || (users.length > 0 ? users[0] : null);
+
+        await db.transaction("rw", db.users, db.classes, db.meta, async () => {
+          await db.users.clear();
+          await db.classes.clear();
+          await db.meta.delete("currentUser");
+
+          if (users.length > 0) {
+            await db.users.bulkPut(users);
+          }
+
+          if (classes.length > 0) {
+            await db.classes.bulkPut(classes);
+          }
+
+          if (fallbackCurrentUser) {
+            await db.meta.put({
+              key: "currentUser",
+              value: fallbackCurrentUser,
+            });
+          }
+        });
 
         alert("Data imported successfully.");
         window.location.reload();
-      } catch (err) {
+      } catch (error) {
+        console.error("Import failed:", error);
         alert("Invalid backup file.");
       } finally {
         event.target.value = "";

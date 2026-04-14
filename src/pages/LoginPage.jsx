@@ -3,21 +3,36 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isReady } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: "teacher", password: "123456" });
+
+  const [form, setForm] = useState({
+    username: "teacher",
+    password: "123456",
+  });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const result = login(form.username, form.password);
+    setError("");
+    setIsSubmitting(true);
 
-    if (!result.success) {
-      setError(result.message);
-      return;
+    try {
+      const result = await login(form.username, form.password);
+
+      if (!result.success) {
+        setError(result.message);
+        return;
+      }
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+      setError("Login failed.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    navigate("/dashboard");
   }
 
   return (
@@ -31,8 +46,12 @@ export default function LoginPage() {
         </p>
 
         <div className="mb-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-          <p><strong>Username:</strong> teacher</p>
-          <p><strong>Password:</strong> 123456</p>
+          <p>
+            <strong>Username:</strong> teacher
+          </p>
+          <p>
+            <strong>Password:</strong> 123456
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -40,25 +59,36 @@ export default function LoginPage() {
             type="text"
             placeholder="Username"
             value={form.username}
-            onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, username: e.target.value }))
+            }
             className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-500"
+            disabled={!isReady || isSubmitting}
           />
 
           <input
             type="password"
             placeholder="Password"
             value={form.password}
-            onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, password: e.target.value }))
+            }
             className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-500"
+            disabled={!isReady || isSubmitting}
           />
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-primary px-4 py-3 font-medium text-white hover:opacity-90"
+            disabled={!isReady || isSubmitting}
+            className="w-full rounded-xl bg-primary px-4 py-3 font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Login
+            {!isReady
+              ? "Loading..."
+              : isSubmitting
+              ? "Logging in..."
+              : "Login"}
           </button>
         </form>
       </div>

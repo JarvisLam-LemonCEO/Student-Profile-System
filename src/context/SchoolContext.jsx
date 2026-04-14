@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { getClasses, saveClasses, seedLocalStorage } from "../utils/storage";
+import { getClasses, saveAllClasses, seedDatabase } from "../db/databaseService";
 
 const SchoolContext = createContext(null);
 
@@ -8,15 +8,24 @@ export function SchoolProvider({ children }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    seedLocalStorage();
-    const storedClasses = getClasses();
-    setClasses(storedClasses);
-    setIsLoaded(true);
+    async function init() {
+      await seedDatabase();
+      const storedClasses = await getClasses();
+      setClasses(storedClasses);
+      setIsLoaded(true);
+    }
+
+    init();
   }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
-    saveClasses(classes);
+
+    async function persist() {
+      await saveAllClasses(classes);
+    }
+
+    persist();
   }, [classes, isLoaded]);
 
   function addClass(payload) {
@@ -358,6 +367,7 @@ export function SchoolProvider({ children }) {
   const value = useMemo(
     () => ({
       classes,
+      isLoaded,
       addClass,
       updateClass,
       deleteClass,
@@ -365,17 +375,17 @@ export function SchoolProvider({ children }) {
       updateStudent,
       deleteStudent,
       reorderStudents,
+      addTeacherAssignment,
+      updateTeacherAssignment,
+      deleteTeacherAssignment,
       addGrade,
       updateGrade,
       deleteGrade,
       addNote,
       updateNote,
       deleteNote,
-      addTeacherAssignment,
-      updateTeacherAssignment,
-      deleteTeacherAssignment,
     }),
-    [classes]
+    [classes, isLoaded]
   );
 
   return (
