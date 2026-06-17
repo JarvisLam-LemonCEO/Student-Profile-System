@@ -4,7 +4,7 @@ import {
   getUsers,
   logoutCurrentUser,
   saveCurrentUser,
-  seedDatabase,
+  seedDatabase
 } from "../db/databaseService";
 
 const AuthContext = createContext(null);
@@ -49,7 +49,10 @@ export function AuthProvider({ children }) {
       );
 
       if (!found) {
-        return { success: false, message: "Invalid username or password" };
+        return {
+          success: false,
+          message: "Invalid username or password"
+        };
       }
 
       await saveCurrentUser(found);
@@ -58,7 +61,11 @@ export function AuthProvider({ children }) {
       return { success: true };
     } catch (error) {
       console.error("Login failed:", error);
-      return { success: false, message: "Login failed" };
+
+      return {
+        success: false,
+        message: "Login failed"
+      };
     }
   }
 
@@ -77,7 +84,7 @@ export function AuthProvider({ children }) {
       isAuthenticated: !!currentUser,
       isReady,
       login,
-      logout,
+      logout
     }),
     [currentUser, isReady]
   );

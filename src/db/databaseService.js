@@ -3,7 +3,7 @@ import { db } from "./db";
 const DEFAULT_USER = {
   id: crypto.randomUUID(),
   username: "teacher",
-  password: "123456",
+  password: "123456"
 };
 
 export async function seedDatabase() {
@@ -40,7 +40,7 @@ export async function getCurrentUser() {
 export async function saveCurrentUser(user) {
   await db.meta.put({
     key: "currentUser",
-    value: user,
+    value: user
   });
 }
 

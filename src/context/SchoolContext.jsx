@@ -1,5 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { getClasses, saveAllClasses, seedDatabase } from "../db/databaseService";
+import {
+  getClasses,
+  saveAllClasses,
+  seedDatabase
+} from "../db/databaseService";
 
 const SchoolContext = createContext(null);
 
@@ -33,8 +37,9 @@ export function SchoolProvider({ children }) {
       id: crypto.randomUUID(),
       name: payload.name,
       description: payload.description || "",
-      students: [],
+      students: []
     };
+
     setClasses((prev) => [...prev, newClass]);
   }
 
@@ -67,11 +72,11 @@ export function SchoolProvider({ children }) {
         problemSolving: Number(studentPayload.skills?.problemSolving || 0),
         leadership: Number(studentPayload.skills?.leadership || 0),
         creativity: Number(studentPayload.skills?.creativity || 0),
-        discipline: Number(studentPayload.skills?.discipline || 0),
+        discipline: Number(studentPayload.skills?.discipline || 0)
       },
       grades: [],
       notes: [],
-      teacherAssignments: [],
+      teacherAssignments: []
     };
 
     setClasses((prev) =>
@@ -96,20 +101,22 @@ export function SchoolProvider({ children }) {
                   ...student,
                   ...payload,
                   image:
-                    payload.image !== undefined ? payload.image : student.image || "",
+                    payload.image !== undefined
+                      ? payload.image
+                      : student.image || "",
                   skills: payload.skills
                     ? {
                         ...student.skills,
-                        ...payload.skills,
+                        ...payload.skills
                       }
                     : student.skills,
                   teacherAssignments:
                     payload.teacherAssignments !== undefined
                       ? payload.teacherAssignments
-                      : student.teacherAssignments || [],
+                      : student.teacherAssignments || []
                 }
               : student
-          ),
+          )
         };
       })
     );
@@ -123,7 +130,7 @@ export function SchoolProvider({ children }) {
               ...classItem,
               students: classItem.students.filter(
                 (student) => student.id !== studentId
-              ),
+              )
             }
           : classItem
       )
@@ -144,7 +151,7 @@ export function SchoolProvider({ children }) {
     const newTeacherAssignment = {
       id: crypto.randomUUID(),
       level: teacherPayload.level,
-      teacherName: teacherPayload.teacherName,
+      teacherName: teacherPayload.teacherName
     };
 
     setClasses((prev) =>
@@ -158,11 +165,11 @@ export function SchoolProvider({ children }) {
                       ...student,
                       teacherAssignments: [
                         ...(student.teacherAssignments || []),
-                        newTeacherAssignment,
-                      ],
+                        newTeacherAssignment
+                      ]
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -179,15 +186,16 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      teacherAssignments: (student.teacherAssignments || []).map(
-                        (assignment) =>
-                          assignment.id === assignmentId
-                            ? { ...assignment, ...payload }
-                            : assignment
-                      ),
+                      teacherAssignments: (
+                        student.teacherAssignments || []
+                      ).map((assignment) =>
+                        assignment.id === assignmentId
+                          ? { ...assignment, ...payload }
+                          : assignment
+                      )
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -204,12 +212,12 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      teacherAssignments: (student.teacherAssignments || []).filter(
-                        (assignment) => assignment.id !== assignmentId
-                      ),
+                      teacherAssignments: (
+                        student.teacherAssignments || []
+                      ).filter((assignment) => assignment.id !== assignmentId)
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -222,7 +230,7 @@ export function SchoolProvider({ children }) {
       subject: gradePayload.subject,
       date: gradePayload.date,
       type: gradePayload.type,
-      grade: Number(gradePayload.grade),
+      grade: Number(gradePayload.grade)
     };
 
     setClasses((prev) =>
@@ -234,10 +242,10 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      grades: [...(student.grades || []), newGrade],
+                      grades: [...(student.grades || []), newGrade]
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -259,13 +267,13 @@ export function SchoolProvider({ children }) {
                           ? {
                               ...grade,
                               ...payload,
-                              grade: Number(payload.grade),
+                              grade: Number(payload.grade)
                             }
                           : grade
-                      ),
+                      )
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -284,10 +292,10 @@ export function SchoolProvider({ children }) {
                       ...student,
                       grades: (student.grades || []).filter(
                         (grade) => grade.id !== gradeId
-                      ),
+                      )
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -298,7 +306,7 @@ export function SchoolProvider({ children }) {
     const newNote = {
       id: crypto.randomUUID(),
       content: notePayload.content,
-      date: notePayload.date,
+      date: notePayload.date
     };
 
     setClasses((prev) =>
@@ -310,10 +318,10 @@ export function SchoolProvider({ children }) {
                 student.id === studentId
                   ? {
                       ...student,
-                      notes: [...(student.notes || []), newNote],
+                      notes: [...(student.notes || []), newNote]
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -332,10 +340,10 @@ export function SchoolProvider({ children }) {
                       ...student,
                       notes: (student.notes || []).map((note) =>
                         note.id === noteId ? { ...note, ...payload } : note
-                      ),
+                      )
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -354,10 +362,10 @@ export function SchoolProvider({ children }) {
                       ...student,
                       notes: (student.notes || []).filter(
                         (note) => note.id !== noteId
-                      ),
+                      )
                     }
                   : student
-              ),
+              )
             }
           : classItem
       )
@@ -383,15 +391,13 @@ export function SchoolProvider({ children }) {
       deleteGrade,
       addNote,
       updateNote,
-      deleteNote,
+      deleteNote
     }),
     [classes, isLoaded]
   );
 
   return (
-    <SchoolContext.Provider value={value}>
-      {children}
-    </SchoolContext.Provider>
+    <SchoolContext.Provider value={value}>{children}</SchoolContext.Provider>
   );
 }
 
