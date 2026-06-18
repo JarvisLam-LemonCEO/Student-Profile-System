@@ -2,7 +2,13 @@
 
 A **React + Vite web application** that allows teachers to manage classes and student profiles. The system supports class management, student records, grade tracking, notes, and skill visualization using a hexagon radar chart.
 
-All data is stored locally in the browser using **localStorage**, so no backend server is required.
+Data is stored using a SQLite database through a Node.js + Express backend.
+
+The system also supports JSON backup import/export for data migration and recovery.
+
+## Inspiration
+
+This project was inspired by the Japanese drama **The Queen's Classroom (女王の教室)**, where a teacher uses a comprehensive student management system to track student records and classroom performance. The idea behind this application is to recreate a similar system using modern web technologies, allowing teachers to manage classes, student profiles, grades, notes, and skill assessments in a centralized platform.
 
 ---
 # Demo
@@ -16,7 +22,7 @@ All data is stored locally in the browser using **localStorage**, so no backend 
 ## Authentication
 
 - Simple teacher login system
-- Credentials stored in localStorage
+- Credentials stored in SQLite database
 - Protected routes to prevent unauthorized access
 
 ## Class Management
@@ -136,7 +142,10 @@ The exported PDF includes:
 - jsPDF
 - jspdf-autotable
 - Lucide React Icons
-- Browser localStorage
+- Node.js
+- Express.js
+- SQLite (better-sqlite3)
+- JSON Backup Import/Export
 
 ---
 
@@ -167,6 +176,11 @@ src
 ├── utils
 │   └── storage.js
 │
+├── backend
+│   ├── server.js
+│   ├── students.sqlite
+│   └── package.json
+│
 ├── App.jsx
 ├── main.jsx
 └── index.css
@@ -174,34 +188,49 @@ src
 
 # How Data is Stored
 
-All data is stored in **browser localStorage**.
+The application uses SQLite as the primary database.
 
-Keys used:
-1. student_profile_users
-2. student_profile_classes
-3. student_profile_current_user
+Database file:
 
-
-Example student structure:
-
-```json
-{
-  "id": "student1",
-  "name": "Alice",
-  "studentId": "S1001",
-  "image": "base64image",
-  "skills": {
-    "communication": 80,
-    "teamwork": 75,
-    "problemSolving": 85,
-    "leadership": 70,
-    "creativity": 78,
-    "discipline": 90
-  },
-  "grades": [],
-  "notes": []
-}
+```text
+backend/students.sqlite
 ```
+
+## Database Tables
+
+### users
+
+Stores teacher login information.
+
+### classes
+
+Stores class information and student records.
+
+### meta
+
+Stores application metadata such as the current logged-in user.
+
+---
+
+## Backup System
+
+### Export Data
+
+The Export Data button generates a JSON backup file from SQLite.
+
+Example:
+
+```text
+student_profile_backup_YYYY-MM-DD.json
+```
+
+### Import Data
+
+The Import Data button restores a JSON backup into SQLite.
+
+### Legacy Migration
+
+Existing `student_profile_backup.json` files can be migrated into SQLite during setup.
 
 # Installation
 
@@ -215,25 +244,41 @@ git clone https://github.com/JarvisLam-LemonCEO/Student-Profile-System.git
 cd student-profile-system
 ```
 
-3. Install dependencies
+3. Install frontend dependencies
+
 ```bash
 npm install
 ```
 
-4. Run development server
+4. Install backend dependencies in the backend folder
+
+```bash
+cd backend
+npm install
+```
+
+5. Run backend
+
+```bash
+node server.js
+```
+
+Backend URL:
+
+```text
+http://localhost:3001
+```
+
+6. Run frontend
+
 ```bash
 npm run dev
 ```
 
-5. Open in browser
+7. Open browser
 
-```bash
+```text
 http://localhost:5173
-```
-6. Default Login
-```json
-Username: teacher
-Password: 123456
 ```
 
 # Screenshots
@@ -243,19 +288,18 @@ Password: 123456
 ![Student Detail Page](screenshots/7.png)
 
 # Limitations
-
-Because this project uses localStorage:
-1. Data only exists on the current browser
-2. Clearing browser storage removes all data
-3. Passwords are not encrypted
-4. Not suitable for production environments
+1. Passwords are currently stored without encryption
+2. SQLite database is stored locally on the machine running the backend
+3. No cloud synchronization
+4. Single-teacher authentication model
+5. Not intended for production use without additional security improvements
 
 This design is intended for learning and demonstration purposes.
 
 # Future Improvements
 Possible enhancements:
-1. Backend API (Node.js + Express)
-2. Database integration (MongoDB / PostgreSQL)
+1. Secure authentication with hashed passwords
+2. Cloud database support (PostgreSQL / MySQL)PostgreSQL)
 3. Secure authentication with hashed passwords
 4. Multiple teacher accounts
 5. Student search and filtering

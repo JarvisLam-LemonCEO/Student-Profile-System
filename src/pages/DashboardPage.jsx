@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import ClassCard from "../components/ClassCard";
 import ClassFormModal from "../components/ClassFormModal";
 import { useSchool } from "../context/SchoolContext";
-import { db } from "../db/db";
+import { exportSqlBackup, importSqlBackup } from "../db/databaseService";
 
 export default function DashboardPage() {
   const { classes, addClass, updateClass, deleteClass } = useSchool();
@@ -35,15 +35,7 @@ export default function DashboardPage() {
 
   async function exportData() {
     try {
-      const users = await db.users.toArray();
-      const classes = await db.classes.toArray();
-      const currentUserMeta = await db.meta.get("currentUser");
-
-      const data = {
-        users,
-        classes,
-        currentUser: currentUserMeta?.value || null,
-      };
+      const data = await exportSqlBackup();
 
       const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json",
@@ -71,6 +63,7 @@ export default function DashboardPage() {
   function normalizeStudent(student) {
     return {
       ...student,
+      id: student.id || crypto.randomUUID(),
       gender: student.gender || "",
       birthday: student.birthday || "",
       weight: student.weight || "",
@@ -96,6 +89,9 @@ export default function DashboardPage() {
   function normalizeClass(cls) {
     return {
       ...cls,
+      id: cls.id || crypto.randomUUID(),
+      name: cls.name || "Untitled Class",
+      description: cls.description || "",
       students: Array.isArray(cls.students)
         ? cls.students.map(normalizeStudent)
         : [],
@@ -125,32 +121,17 @@ export default function DashboardPage() {
           ? importedData.users
           : [];
 
-        const classes = Array.isArray(importedData.classes)
+        const importedClasses = Array.isArray(importedData.classes)
           ? importedData.classes.map(normalizeClass)
           : [];
 
         const fallbackCurrentUser =
           importedData.currentUser || (users.length > 0 ? users[0] : null);
 
-        await db.transaction("rw", db.users, db.classes, db.meta, async () => {
-          await db.users.clear();
-          await db.classes.clear();
-          await db.meta.delete("currentUser");
-
-          if (users.length > 0) {
-            await db.users.bulkPut(users);
-          }
-
-          if (classes.length > 0) {
-            await db.classes.bulkPut(classes);
-          }
-
-          if (fallbackCurrentUser) {
-            await db.meta.put({
-              key: "currentUser",
-              value: fallbackCurrentUser,
-            });
-          }
+        await importSqlBackup({
+          users,
+          classes: importedClasses,
+          currentUser: fallbackCurrentUser,
         });
 
         alert("Data imported successfully.");
